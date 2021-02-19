@@ -11,5 +11,5 @@ This is used in conjunction with `Env.get` and `Env.get_exn`, both of which can 
 
 ## Todo
 
- [ ] Adding a lexer to process variables and output them as strings, ints, floats, etc. Currently, all variables are initialized as strings.
+ - [ ] Adding a lexer to process variables and output them as strings, ints, floats, etc. Currently, all variables are initialized as strings.
 
