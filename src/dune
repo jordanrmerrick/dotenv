@@ -1,4 +1,4 @@
 (executable
   (name env)
-  (libraries base stdio)
+  (libraries base stdio unix)
 )

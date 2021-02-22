@@ -56,22 +56,33 @@ end = struct
       
 end
 
-type t = (string * string) list
+(* 
+  Potentially going to use a Hashtbl as the object for these envs. Its space complexity is greater because the data comes in into a list, parsed, then stored in a
+  Hashtbl. The time complexity is greatly reduced; since there is no specific order in which one may access environment variables, a linked list does not provide
+  the most efficient solution.
+*)
+
+type ('a, 'b) t = ('a, 'b) Hashtbl.t
     
 let to_t t = t
 let of_t t = t
 
 let of_p (k, v) = (P.to_string k, P.to_string v) |> to_t
 
-let create filename =
-  let open P in 
+let init filename =
+  let open P in
   read filename |> List.map ~f:parse |> excluder |> List.map ~f:of_p
 
+let create filename =
+  let handler x = match x with `Ok -> () | `Duplicate -> () in
+  let kv = Hashtbl.create (module String) in
+  init filename |> List.iter ~f:(fun (k, v) -> handler (Hashtbl.add kv ~key:k ~data:v)); kv
+
 let export filename =
-  create filename |> List.iter ~f:(fun (k, v) -> Unix.putenv k v)
+  init filename |> List.iter ~f:(fun (k, v) -> Unix.putenv k v)
 
-let get (env : t) (key : string) =
-  List.Assoc.find ~equal:String.(=) env key
-
-let get_exn (env : t) (key : string) =
-  List.Assoc.find_exn ~equal:String.(=) env key
+let get env (key : string) =
+  Hashtbl.find env key
+    
+let get_exn env (key : string) =
+  Hashtbl.find_exn env key
