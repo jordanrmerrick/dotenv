@@ -12,30 +12,24 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *)
 
-open! Base
 open! Stdio
+open! Base
+include Find
 
 module P : sig
 
-  type t
-    
-  val to_string : t -> string
-  val of_string : string -> t
+  val read : ?filename:string -> unit -> string list
 
-  val read : string -> t list
+  val parse : string -> (string * string) option
 
-  val parse : t -> (t * t) option
-
-  val excluder : (t * t) option list -> (t * t) list
+  val excluder : (string * string) option list -> (string * string) list
 
 end = struct
 
-  type t = string
-
-  let to_string t = t
-  let of_string t = t
-
-  let read filename = In_channel.read_lines filename
+  let read ?(filename="") () =
+    match filename with
+    | ""      -> In_channel.read_lines ".env"
+    | _ as fn -> In_channel.read_lines fn
             
   let parse s =
      String.strip s
@@ -67,14 +61,12 @@ type ('a, 'b) t = ('a, 'b) Hashtbl.t
 let to_t t = t
 let of_t t = t
 
-let of_p (k, v) = (P.to_string k, P.to_string v) |> to_t
-
 let init filename =
   let open P in
-  read filename |> List.map ~f:parse |> excluder |> List.map ~f:of_p
+  read ~filename () |> List.map ~f:parse |> excluder
 
 let create filename =
-  let handler x = match x with `Ok -> () | `Duplicate -> () in
+  let handler x = match x with `Ok | `Duplicate -> () in
   let kv = Hashtbl.create (module String) in
   init filename |> List.iter ~f:(fun (k, v) -> handler (Hashtbl.add kv ~key:k ~data:v)); kv
 
