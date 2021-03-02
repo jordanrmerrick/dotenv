@@ -14,7 +14,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 
 open! Stdio
 open! Base
-include Find
+open! Path
 
 module P : sig
 
@@ -50,17 +50,8 @@ end = struct
       
 end
 
-(* 
-  Potentially going to use a Hashtbl as the object for these envs. Its space complexity is greater because the data comes in into a list, parsed, then stored in a
-  Hashtbl. The time complexity is greatly reduced; since there is no specific order in which one may access environment variables, a linked list does not provide
-  the most efficient solution.
-*)
-
 type ('a, 'b) t = ('a, 'b) Hashtbl.t
     
-let to_t t = t
-let of_t t = t
-
 let init filename =
   let open P in
   read ~filename () |> List.map ~f:parse |> excluder
@@ -78,3 +69,6 @@ let get env (key : string) =
     
 let get_exn env (key : string) =
   Hashtbl.find_exn env key
+
+let find () =
+  Path.Walker.search ()

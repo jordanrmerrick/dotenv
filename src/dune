@@ -1,4 +1,4 @@
 (executable
   (name test)
-  (libraries core_kernel unix)
+  (libraries stdio base unix)
 )
